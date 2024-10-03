@@ -12,14 +12,17 @@ Before running the script, ensure you have the following set up:
 Create a .env file in the root directory with the following variables:
 
 SHOPIFY_API_KEY=your_shopify_api_key
+
 SHOPIFY_API_PASSWORD=your_shopify_api_password
+
 SHOPIFY_API_ACCESS_TOKEN=your_shopify_access_token
+
 SHOPIFY_STORE=your_shopify_store_name 
 
 # Install dependencies:
 This script uses the axios library to interact with the Shopify API. Install it using npm:
 
-<code>npm install axios dotenv<code>
+<code>npm install axios dotenv</code>
 
 ## Script Details
 
