@@ -19,6 +19,9 @@ SHOPIFY_API_ACCESS_TOKEN=your_shopify_access_token
 
 SHOPIFY_STORE=your_shopify_store_name 
 
+# Shopify Admin App API access scopes
+write_orders, read_orders, write_products, read_products, write_draft_orders, read_draft_orders
+
 # Install dependencies:
 This script uses the axios library to interact with the Shopify API. Install it using npm:
 
