@@ -8,11 +8,6 @@ Before running the script, ensure you have the following set up:
 1. Shopify Store: You need an active Shopify store.
 2. Shopify API Access Token: Generate a private app in Shopify to get an API key for interacting with the Shopify Admin API. 
 
-# Install dependencies:
-This script uses the axios library to interact with the Shopify API. Install it using npm:
-
-npm install axios dotenv
-
 # Configure environment variables:
 Create a .env file in the root directory with the following variables:
 
@@ -20,7 +15,12 @@ SHOPIFY_API_KEY=your_shopify_api_key
 SHOPIFY_API_PASSWORD=your_shopify_api_password
 SHOPIFY_API_ACCESS_TOKEN=your_shopify_access_token
 SHOPIFY_STORE=your_shopify_store_name 
- 
+
+# Install dependencies:
+This script uses the axios library to interact with the Shopify API. Install it using npm:
+
+<code>npm install axios dotenv<code>
+
 ## Script Details
 
 # Main Functions
