@@ -1,0 +1,17 @@
+{
+  "name": "shopify-order-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@shopify/shopify-api": "^11.4.1",
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5"
+  }
+}
