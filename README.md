@@ -20,7 +20,7 @@ SHOPIFY_API_KEY=your_shopify_api_key
 SHOPIFY_API_PASSWORD=your_shopify_api_password
 SHOPIFY_API_ACCESS_TOKEN=your_shopify_access_token
 SHOPIFY_STORE=your_shopify_store_name
-
+ 
 # Script Details
 
 
