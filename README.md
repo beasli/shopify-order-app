@@ -19,10 +19,9 @@ Create a .env file in the root directory with the following variables:
 SHOPIFY_API_KEY=your_shopify_api_key
 SHOPIFY_API_PASSWORD=your_shopify_api_password
 SHOPIFY_API_ACCESS_TOKEN=your_shopify_access_token
-SHOPIFY_STORE=your_shopify_store_name
+SHOPIFY_STORE=your_shopify_store_name 
  
-# Script Details
-
+## Script Details
 
 # Main Functions
 1. cancelOrder(orderId): Cancels an existing order using its ID.
