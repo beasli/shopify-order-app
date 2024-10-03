@@ -126,4 +126,4 @@ async function cancelAndCreateDiscountedOrder(orderId) {
 
 // Example usage: Replace with the actual original order ID
 const originalOrderId = '6219881873699';  // Replace with the actual order ID
-cancelAndCreateDiscountedOrder(originalOrderId);
+cancelAndCreateDiscountedOrder(originalOrderId); 
