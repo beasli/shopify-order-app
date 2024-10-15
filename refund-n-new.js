@@ -10,23 +10,67 @@ const SHOPIFY_STORE = process.env.SHOPIFY_STORE;
 const SHOPIFY_API_URL = `https://${SHOPIFY_STORE}.myshopify.com/admin/api/2023-01`;
 
 /**
- * Function to cancel the original order
+ * Function to fetch transaction details for an order
  * @param {String} orderId - The ID of the original order
  */
-async function cancelOrder(orderId) {
+async function fetchOrderTransaction(orderId) {
     try {
-        const cancelUrl = `${SHOPIFY_API_URL}/orders/${orderId}/cancel.json`;
+        const transactionUrl = `${SHOPIFY_API_URL}/orders/${orderId}/transactions.json`;
 
-        const response = await axios.post(cancelUrl, {}, {
+        const response = await axios.get(transactionUrl, {
             headers: {
                 'X-Shopify-Access-Token': SHOPIFY_API_ACCESS_TOKEN
             }
         });
 
-        console.log('Order canceled successfully:', response.data);
+        const transactions = response.data.transactions;
+        const originalTransaction = transactions.find(transaction => transaction.kind === 'sale');
+        
+        if (originalTransaction) {
+            return originalTransaction.id;
+        } else {
+            console.error('No sale transaction found for the order.');
+            return null;
+        }
+    } catch (error) {
+        console.error('Error fetching transaction:', error.response ? error.response.data : error.message);
+        return null;
+    }
+}
+
+/**
+ * Function to refund the original order
+ * @param {String} orderId - The ID of the original order
+ * @param {String} parentId - The ID of the original transaction to be refunded
+ */
+async function refundOrder(orderId, parentId) {
+    try {
+        const refundUrl = `${SHOPIFY_API_URL}/orders/${orderId}/refunds.json`;
+        
+        const refundPayload = {
+            refund: {
+                notify: false, // Do not send refund notification to the customer
+                transactions: [
+                    {
+                        kind: 'refund',
+                        gateway: 'manual',
+                        parent_id: parentId, // The parent transaction ID required for non-manual gateways
+                        amount: 0.00 // Amount to refund (adjust based on the original order total)
+                    }
+                ]
+            }
+        };
+
+        const response = await axios.post(refundUrl, refundPayload, {
+            headers: {
+                'X-Shopify-Access-Token': SHOPIFY_API_ACCESS_TOKEN
+            }
+        });
+
+        console.log('Refund issued successfully:', response.data);
         return true;
     } catch (error) {
-        console.error('Error canceling order:', error.response ? error.response.data : error.message);
+        console.error('Error issuing refund:', error.response ? error.response.data : error.message);
         return false;
     }
 }
@@ -53,7 +97,7 @@ async function fetchOriginalOrder(orderId) {
 }
 
 /**
- * Function to create a new order with a discount
+ * Function to create a new order with a discount and mark as fulfilled
  * @param {Object} originalOrder - The original order details
  */
 async function createNewOrderWithDiscount(originalOrder) {
@@ -61,9 +105,9 @@ async function createNewOrderWithDiscount(originalOrder) {
         const newOrderPayload = {
             order: {
                 email: originalOrder.email,
-                financial_status: 'paid',  //pending or paid
-                send_receipt: false,  // Set to true if you want to email receipt to customer
-                send_fulfillment_receipt: false,  // Set to true if you want to email fulfillment notification
+                financial_status: 'paid',
+                send_receipt: false, // Disable customer receipt email
+                send_fulfillment_receipt: false, // Disable fulfillment email
                 line_items: originalOrder.line_items.map(item => ({
                     variant_id: item.variant_id,
                     quantity: item.quantity,
@@ -83,7 +127,7 @@ async function createNewOrderWithDiscount(originalOrder) {
                     id: originalOrder.customer.id
                 },
                 note: 'This is a new order created with a discount',
-                name: originalOrder.name + '-FreeBase',  // Add suffix to order name
+                name: originalOrder.name + '-DISCOUNTED',
                 fulfillment_status: 'fulfilled' // Mark as fulfilled
             }
         };
@@ -96,16 +140,19 @@ async function createNewOrderWithDiscount(originalOrder) {
         });
 
         console.log('New order created successfully:', response.data);
+
+        return response.data.order;
     } catch (error) {
         console.error('Error creating new order:', error.response ? error.response.data : error.message);
+        return null;
     }
 }
 
 /**
- * Main function to cancel an order and create a new one with a discount
+ * Main function to refund an order and create a new one with a discount
  * @param {String} orderId - The ID of the original order
  */
-async function cancelAndCreateDiscountedOrder(orderId) {
+async function refundAndCreateDiscountedOrder(orderId) {
     // Step 1: Fetch original order details
     const originalOrder = await fetchOriginalOrder(orderId);
 
@@ -114,17 +161,25 @@ async function cancelAndCreateDiscountedOrder(orderId) {
         return;
     }
 
-    // Step 2: Cancel the original order
-    const cancelSuccess = await cancelOrder(orderId);
+    // Step 2: Fetch the transaction for the order to get the parent_id
+    const parentId = await fetchOrderTransaction(orderId);
 
-    if (cancelSuccess) {
-        // Step 3: Create a new order with a discount if the original order was successfully canceled
-        await createNewOrderWithDiscount(originalOrder);
+    if (!parentId) {
+        console.error('Transaction not found or parent_id missing. Exiting process.');
+        return;
+    }
+
+    // Step 3: Refund the original order
+    const refundSuccess = await refundOrder(orderId, parentId);
+
+    if (refundSuccess) {
+        // Step 4: Create a new order with a discount after refunding the original order
+        const newOrder = await createNewOrderWithDiscount(originalOrder);
     } else {
-        console.error('Failed to cancel the original order. New order creation aborted.');
+        console.error('Failed to refund the original order. New order creation aborted.');
     }
 }
 
 // Example usage: Replace with the actual original order ID
-const originalOrderId = '6235879801123';  // Replace with the actual order ID
-cancelAndCreateDiscountedOrder(originalOrderId); 
+const originalOrderId = '6235907621155';  // Replace with the actual order ID
+refundAndCreateDiscountedOrder(originalOrderId);
